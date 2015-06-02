@@ -1,0 +1,137 @@
+<?php
+/**
+ *   dspace.module for Drupal
+ *
+ *   Copyright (C) 2014 The Centre for International Governance Innovation
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+
+require_once("includes/dspace.inc");
+require_once("dspace.entities.inc");
+require_once("includes/dspace.variables.inc");
+require_once('dspace.cron.inc');
+
+/**
+ *  Implements hook_help().
+ */
+function dspace_help($path, $arg){
+    $output = '';
+    switch($path){
+        case "admin/help#dspace":
+            $output = '<p>' . t("This module imports content from DSpace " .
+                "and creates corresponding Drupal entities.") . '<p>';
+            break;
+    }
+    return $output;
+}
+
+/**
+ *  Implements hook_permission().
+ */
+function dspace_permission(){
+    return array(
+        'administer dspace' => array(
+            'title' => t('Administer DSpace'),
+            'description' => t('Allows users to administer the DSpace module.'),
+            'restrict access' => TRUE,
+        ),
+    );
+}
+
+
+
+function dspace_menu(){
+    $items['admin/structure/dspace/manage'] = array(
+        'title' => t('DSpace Document Library'),
+        'description' => t('DSpace Document Library'),
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('dspace_admin'),
+        'access arguments' => array('administer dspace'),
+        'file' => 'includes/dspace.admin.inc',
+    );
+
+    $items['admin/structure/dspace/manage/setup'] = array(
+        'title' => 'DSpace Setup',
+        'description' => 'Configure the DSpace module.',
+        'weight' => -1,
+        'type' => MENU_DEFAULT_LOCAL_TASK,
+        'file' => 'includes/dspace.admin.inc',
+    );
+
+    //tests that the current connection is up.
+    $items['admin/structure/dspace/manage/testconnection'] = array(
+        'title' => 'Check DSpace Connection',
+        'page callback' => 'dspace_test_connection',
+        'access arguments' => array('administer dspace'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 1,
+        'file' => 'includes/dspace.connection.inc',
+    );
+
+    //lists the different sets available.
+    $items['admin/structure/dspace/manage/sets'] = array(
+        'title' => 'Sets',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('dspace_sets'),
+        'access arguments' => array('administer dspace'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 2,
+        'file' => 'includes/dspace.sets.inc',
+    );
+
+    $items['admin/structure/dspace/manage/items'] = array(
+        'title' => 'Items',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('dspace_items'),
+        'access arguments' => array('administer dspace'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 3,
+        'file' => 'includes/dspace.items.inc',
+    );
+
+    //remove all dspace data.
+    $items['admin/structure/dspace/manage/delete'] = array(
+        'title' => 'Global Reset',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('dspace_global_delete'),
+        'access arguments' => array('administer dspace'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 4,
+        'file' => 'includes/dspace.global.delete.inc',
+    );
+
+    $items['dspace/item/%'] = array(
+        'title' => 'Library Article',
+        'page callback' => 'view_dspace_item',
+        'page arguments' => array(2),
+        'access arguments' => array('access content'),
+      );
+    return $items;
+}
+
+function view_dspace_item($id) {
+
+  $items = entity_load('dspace_item', array($id));
+  $item = $items[$id];
+
+  drupal_set_title($item->title);
+  $output = entity_view('dspace_item', array($item));
+
+  return $output;
+
+}
+

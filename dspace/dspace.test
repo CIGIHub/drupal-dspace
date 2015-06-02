@@ -1,0 +1,30 @@
+<?php
+
+
+
+class DSpaceTestCase extends DrupalWebTestCase {
+  protected $admin_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Example',
+      'description' => 'Tests',
+      'group' => 'DSpace',
+    );
+  }
+
+  public function setUp(){
+    parent::setUp(array('dspace'));
+    $admin_role = array_search('administrator', user_roles());
+    $permissions = user_role_permissions(array($admin_role => 'administrator'));
+    $permissions = array_keys($permissions[$admin_role]);
+    $this->admin_user = $this->drupalCreateUser($permissions);
+    $this->drupalLogin($this->admin_user);
+
+  }
+
+  public function testDSpace(){
+    $this->drupalGet('admin/structure/dspace/manage');
+    $this->assertText(t('DSpace Document Library'));
+  }
+}

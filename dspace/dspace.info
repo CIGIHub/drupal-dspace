@@ -1,0 +1,20 @@
+name = DSpace
+description = This module pulls content from dspace and creates dspace nodes.
+core = 7.x
+testing_api = 2.x
+
+package = DSpace
+
+dependencies[] = entity
+dependencies[] = entityreference
+dependencies[] = views
+dependencies[] = taxonomy
+dependencies[] = field
+
+files[] = dspace.install
+files[] = dspace.module
+files[] = dspace.cron.inc
+files[] = dspace.entities.inc
+files[] = dspace.test
+
+
